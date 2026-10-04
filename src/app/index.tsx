@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 // ========================================
@@ -70,16 +71,30 @@ const getStatusIcon = (status: Report["status"]) => {
   return "alert-circle";
 };
 
+const summaryItems = [
+  {
+    label: "Total",
+    value: reports.length,
+    color: "#2563eb",
+    icon: "document-text-outline" as keyof typeof Ionicons.glyphMap,
+  },
+  {
+    label: "Diproses",
+    value: reports.filter((report) => report.status === "Diproses").length,
+    color: "#f59e0b",
+    icon: "time-outline" as keyof typeof Ionicons.glyphMap,
+  },
+  {
+    label: "Selesai",
+    value: reports.filter((report) => report.status === "Selesai").length,
+    color: "#16a34a",
+    icon: "checkmark-circle-outline" as keyof typeof Ionicons.glyphMap,
+  },
+];
+
 // ========================================
 // CUSTOM FUNCTION
 // ========================================
-
-const handleReportPress = (report: Report) => {
-  Alert.alert(
-    "Detail Laporan",
-    `${report.title}\n\nLokasi: ${report.location}\nStatus: ${report.status}`,
-  );
-};
 
 const handleAddReport = () => {
   Alert.alert("Buat Laporan", "Fitur pembuatan laporan akan segera dibuka.");
@@ -90,8 +105,55 @@ const handleAddReport = () => {
 // ========================================
 
 export default function Index() {
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+
+  const handleReportPress = (report: Report) => {
+    setSelectedReport(report);
+  };
+
   return (
     <View style={styles.container}>
+      {selectedReport ? (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Detail Laporan</Text>
+
+              <Pressable onPress={() => setSelectedReport(null)}>
+                <Ionicons name="close-circle" size={24} color="#64748b" />
+              </Pressable>
+            </View>
+
+            <Text style={styles.modalReportTitle}>{selectedReport.title}</Text>
+            <Text style={styles.modalText}>
+              Lokasi: {selectedReport.location}
+            </Text>
+            <Text style={styles.modalText}>
+              Deskripsi: {selectedReport.description}
+            </Text>
+
+            <View style={styles.modalStatusRow}>
+              <Text style={styles.modalStatusLabel}>Status: </Text>
+              <Text
+                style={[
+                  styles.modalStatusValue,
+                  { color: getStatusColor(selectedReport.status) },
+                ]}
+              >
+                {selectedReport.status}
+              </Text>
+            </View>
+
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => setSelectedReport(null)}
+            >
+              <Text style={styles.modalButtonText}>Tutup</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+
       {/* HEADER */}
       <View style={styles.header}>
         <View>
@@ -132,6 +194,27 @@ export default function Index() {
 
           <Text style={styles.statLabel}>Total Laporan</Text>
         </View>
+      </View>
+
+      <View style={styles.summaryRow}>
+        {summaryItems.map((item) => (
+          <View
+            key={item.label}
+            style={[styles.summaryItem, { borderColor: item.color + "33" }]}
+          >
+            <View
+              style={[
+                styles.summaryIcon,
+                { backgroundColor: item.color + "1A" },
+              ]}
+            >
+              <Ionicons name={item.icon} size={18} color={item.color} />
+            </View>
+
+            <Text style={styles.summaryValue}>{item.value}</Text>
+            <Text style={styles.summaryLabel}>{item.label}</Text>
+          </View>
+        ))}
       </View>
 
       {/* REPORT TITLE */}
@@ -285,6 +368,120 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 13,
     color: "#64748b",
+  },
+
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    gap: 10,
+  },
+
+  summaryItem: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    elevation: 1,
+  },
+
+  summaryIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#0f172a",
+  },
+
+  summaryLabel: {
+    fontSize: 11,
+    color: "#64748b",
+    marginTop: 2,
+  },
+
+  modalOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(15, 23, 42, 0.38)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    zIndex: 10,
+  },
+
+  modalCard: {
+    width: "100%",
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 20,
+    elevation: 6,
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#0f172a",
+  },
+
+  modalReportTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1e293b",
+    marginBottom: 10,
+  },
+
+  modalText: {
+    fontSize: 14,
+    color: "#334155",
+    marginBottom: 8,
+  },
+
+  modalStatusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 12,
+  },
+
+  modalStatusLabel: {
+    fontSize: 14,
+    color: "#334155",
+    fontWeight: "600",
+  },
+
+  modalStatusValue: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  modalButton: {
+    backgroundColor: "#2563eb",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  modalButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "700",
   },
 
   sectionTitle: {
