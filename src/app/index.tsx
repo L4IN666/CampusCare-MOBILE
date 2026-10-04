@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 // ========================================
 // TYPE / INTERFACE
@@ -10,6 +10,7 @@ interface Report {
   id: number;
   title: string;
   location: string;
+  description: string;
   status: "Menunggu" | "Diproses" | "Selesai";
   icon: keyof typeof Ionicons.glyphMap;
 }
@@ -24,6 +25,7 @@ const reports: Report[] = [
     id: 1,
     title: "Lampu Kelas Mati",
     location: "Gedung Kuliah Bersama",
+    description: "Lampu di kelas 101 tidak menyala",
     status: "Diproses",
     icon: "bulb-outline",
   },
@@ -31,6 +33,7 @@ const reports: Report[] = [
     id: 2,
     title: "Kursi Rusak",
     location: "Laboratorium Informatika",
+    description: "Beberapa kursi di laboratorium rusak",
     status: "Menunggu",
     icon: "desktop-outline",
   },
@@ -38,6 +41,7 @@ const reports: Report[] = [
     id: 3,
     title: "Keran Air Rusak",
     location: "Gedung Teknik",
+    description: "Keran air di toilet lantai 2 tidak berfungsi",
     status: "Selesai",
     icon: "water-outline",
   },
@@ -60,12 +64,25 @@ const getStatusColor = (status: Report["status"]) => {
   return "#64748b";
 };
 
+const getStatusIcon = (status: Report["status"]) => {
+  if (status === "Selesai") return "checkmark-circle";
+  if (status === "Diproses") return "time";
+  return "alert-circle";
+};
+
 // ========================================
 // CUSTOM FUNCTION
 // ========================================
 
-const handleReportPress = (title: string) => {
-  console.log("Laporan dipilih:", title);
+const handleReportPress = (report: Report) => {
+  Alert.alert(
+    "Detail Laporan",
+    `${report.title}\n\nLokasi: ${report.location}\nStatus: ${report.status}`,
+  );
+};
+
+const handleAddReport = () => {
+  Alert.alert("Buat Laporan", "Fitur pembuatan laporan akan segera dibuka.");
 };
 
 // ========================================
@@ -127,7 +144,7 @@ export default function Index() {
         {reports.map((report) => (
           <Pressable
             key={report.id}
-            onPress={() => handleReportPress(report.title)}
+            onPress={() => handleReportPress(report)}
             style={styles.reportCard}
           >
             {/* ICON */}
@@ -151,13 +168,10 @@ export default function Index() {
               <Text style={styles.location}>{report.location}</Text>
 
               <View style={styles.statusRow}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    {
-                      backgroundColor: getStatusColor(report.status),
-                    },
-                  ]}
+                <Ionicons
+                  name={getStatusIcon(report.status)}
+                  size={16}
+                  color={getStatusColor(report.status)}
                 />
 
                 <Text
@@ -165,6 +179,7 @@ export default function Index() {
                     styles.statusText,
                     {
                       color: getStatusColor(report.status),
+                      marginLeft: 5,
                     },
                   ]}
                 >
@@ -174,19 +189,15 @@ export default function Index() {
             </View>
 
             {/* ARROW */}
-            <Ionicons name="chevron-forward" size={20} color="#94a3b8" />
+            <Ionicons name="chevron-forward" size={20} color="#415b5f" />
           </Pressable>
         ))}
       </View>
 
       {/* BUTTON */}
 
-      <Pressable
-        style={styles.addButton}
-        onPress={() => handleReportPress("Buat Laporan Baru")}
-      >
+      <Pressable style={styles.addButton} onPress={handleAddReport}>
         <Ionicons name="add" size={22} color="white" />
-
         <Text style={styles.addButtonText}>Buat Laporan</Text>
       </Pressable>
     </View>
@@ -202,7 +213,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    padding: 20,
+    padding: 24,
   },
 
   header: {
@@ -210,7 +221,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 20,
-    marginBottom: 24,
+    marginBottom: 28,
   },
 
   greeting: {
@@ -223,23 +234,25 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#dbeafe",
+    backgroundColor: "#fedddb",
     justifyContent: "center",
     alignItems: "center",
   },
 
   titleSection: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 46,
+    textAlign: "center",
     fontWeight: "bold",
     color: "#2563eb",
   },
 
   subtitle: {
     fontSize: 14,
+    textAlign: "center",
     color: "#64748b",
     marginTop: 4,
   },
