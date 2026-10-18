@@ -1,18 +1,44 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { ReportProvider } from "@/store/reports-store";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { useColorScheme } from "react-native";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
-
-SplashScreen.preventAutoHideAsync();
-
-export default function TabLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <ReportProvider>
+        <Stack>
+          <Stack.Screen
+            name="index"
+            options={{
+              title: "CampusCare",
+              headerShown: true,
+            }}
+          />
+
+          <Stack.Screen
+            name="explore"
+            options={{
+              title: "Informasi CampusCare",
+            }}
+          />
+
+          <Stack.Screen
+            name="detail"
+            options={{
+              title: "Detail Laporan",
+            }}
+          />
+
+          <Stack.Screen
+            name="create-report"
+            options={{
+              title: "Buat Laporan",
+            }}
+          />
+        </Stack>
+      </ReportProvider>
     </ThemeProvider>
   );
 }

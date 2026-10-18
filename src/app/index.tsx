@@ -1,560 +1,221 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Report, useReports } from "@/store/reports-store";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-// ========================================
-// TYPE / INTERFACE
-// Assessment: Type + Array of Objects
-// ========================================
-
-interface Report {
-  id: number;
-  title: string;
-  location: string;
-  description: string;
-  status: "Menunggu" | "Diproses" | "Selesai";
-  icon: keyof typeof Ionicons.glyphMap;
+function statusColor(status: Report["status"]) {
+  switch (status) {
+    case "Selesai":
+      return "#15803d";
+    case "Diproses":
+      return "#b45309";
+    default:
+      return "#475569";
+  }
 }
 
-// ========================================
-// ARRAY OF OBJECTS
-// Assessment: Type + Array of Objects
-// ========================================
+export default function HomeScreen() {
+  const router = useRouter();
+  const { reports } = useReports();
 
-const reports: Report[] = [
-  {
-    id: 1,
-    title: "Lampu Kelas Mati",
-    location: "Gedung Kuliah Bersama",
-    description: "Lampu di kelas 101 tidak menyala",
-    status: "Diproses",
-    icon: "bulb-outline",
-  },
-  {
-    id: 2,
-    title: "Kursi Rusak",
-    location: "Laboratorium Informatika",
-    description: "Beberapa kursi di laboratorium rusak",
-    status: "Menunggu",
-    icon: "desktop-outline",
-  },
-  {
-    id: 3,
-    title: "Keran Air Rusak",
-    location: "Gedung Teknik",
-    description: "Keran air di toilet lantai 2 tidak berfungsi",
-    status: "Selesai",
-    icon: "water-outline",
-  },
-];
+  const [lastUpdated, setLastUpdated] = useState("");
 
-// ========================================
-// CUSTOM FUNCTION
-// Assessment: Custom Function
-// ========================================
+  useEffect(() => {
+    setLastUpdated(
+      new Date().toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    );
+  }, [reports]);
 
-const getStatusColor = (status: Report["status"]) => {
-  if (status === "Selesai") {
-    return "#16a34a";
-  }
-
-  if (status === "Diproses") {
-    return "#f59e0b";
-  }
-
-  return "#64748b";
-};
-
-const getStatusIcon = (status: Report["status"]) => {
-  if (status === "Selesai") return "checkmark-circle";
-  if (status === "Diproses") return "time";
-  return "alert-circle";
-};
-
-const summaryItems = [
-  {
-    label: "Total",
-    value: reports.length,
-    color: "#2563eb",
-    icon: "document-text-outline" as keyof typeof Ionicons.glyphMap,
-  },
-  {
-    label: "Diproses",
-    value: reports.filter((report) => report.status === "Diproses").length,
-    color: "#f59e0b",
-    icon: "time-outline" as keyof typeof Ionicons.glyphMap,
-  },
-  {
-    label: "Selesai",
-    value: reports.filter((report) => report.status === "Selesai").length,
-    color: "#16a34a",
-    icon: "checkmark-circle-outline" as keyof typeof Ionicons.glyphMap,
-  },
-];
-
-// ========================================
-// CUSTOM FUNCTION
-// ========================================
-
-const handleAddReport = () => {
-  Alert.alert("Buat Laporan", "Fitur pembuatan laporan akan segera dibuka.");
-};
-
-// ========================================
-// MAIN COMPONENT
-// ========================================
-
-export default function Index() {
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-
-  const handleReportPress = (report: Report) => {
-    setSelectedReport(report);
-  };
+  const waiting = reports.filter((r) => r.status === "Menunggu").length;
+  const processing = reports.filter((r) => r.status === "Diproses").length;
+  const completed = reports.filter((r) => r.status === "Selesai").length;
 
   return (
-    <View style={styles.container}>
-      {selectedReport ? (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Detail Laporan</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.eyebrow}>SISTEM PELAPORAN FASILITAS KAMPUS</Text>
+      <Text style={styles.title}>CampusCare</Text>
+      <Text style={styles.subtitle}>
+        Laporkan masalah fasilitas kampus dengan mudah.
+      </Text>
 
-              <Pressable onPress={() => setSelectedReport(null)}>
-                <Ionicons name="close-circle" size={24} color="#64748b" />
-              </Pressable>
-            </View>
-
-            <Text style={styles.modalReportTitle}>{selectedReport.title}</Text>
-            <Text style={styles.modalText}>
-              Lokasi: {selectedReport.location}
-            </Text>
-            <Text style={styles.modalText}>
-              Deskripsi: {selectedReport.description}
-            </Text>
-
-            <View style={styles.modalStatusRow}>
-              <Text style={styles.modalStatusLabel}>Status: </Text>
-              <Text
-                style={[
-                  styles.modalStatusValue,
-                  { color: getStatusColor(selectedReport.status) },
-                ]}
-              >
-                {selectedReport.status}
-              </Text>
-            </View>
-
-            <Pressable
-              style={styles.modalButton}
-              onPress={() => setSelectedReport(null)}
-            >
-              <Text style={styles.modalButtonText}>Tutup</Text>
-            </Pressable>
-          </View>
-        </View>
-      ) : null}
-
-      {/* HEADER */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Halo, Mahasiswa 👋</Text>
-
-          {/* INLINE STYLE */}
-          <Text
-            style={{
-              fontSize: 14,
-              color: "#64748b",
-              marginTop: 4,
-            }}
-          >
-            Laporkan fasilitas kampus yang bermasalah
-          </Text>
-        </View>
-
-        <View style={styles.logo}>
-          <Ionicons name="business-outline" size={26} color="#2563eb" />
-        </View>
+      <View style={styles.totalCard}>
+        <Text style={styles.totalLabel}>Total Laporan</Text>
+        <Text style={styles.totalNumber}>{reports.length}</Text>
+        <Text style={styles.updated}>Terakhir diperbarui: {lastUpdated}</Text>
       </View>
 
-      {/* TITLE */}
-      <View style={styles.titleSection}>
-        <Text style={styles.title}>CampusCare</Text>
-
-        <Text style={styles.subtitle}>Sistem Pelaporan Fasilitas Kampus</Text>
-      </View>
-
-      {/* STATISTIC */}
-      <View style={styles.statCard}>
-        <View style={styles.statIcon}>
-          <Ionicons name="document-text-outline" size={24} color="#2563eb" />
-        </View>
-
-        <View>
-          <Text style={styles.statNumber}>{reports.length}</Text>
-
-          <Text style={styles.statLabel}>Total Laporan</Text>
-        </View>
-      </View>
+      <Text style={styles.sectionTitle}>Ringkasan Status</Text>
 
       <View style={styles.summaryRow}>
-        {summaryItems.map((item) => (
-          <View
-            key={item.label}
-            style={[styles.summaryItem, { borderColor: item.color + "33" }]}
-          >
-            <View
-              style={[
-                styles.summaryIcon,
-                { backgroundColor: item.color + "1A" },
-              ]}
-            >
-              <Ionicons name={item.icon} size={18} color={item.color} />
-            </View>
-
-            <Text style={styles.summaryValue}>{item.value}</Text>
-            <Text style={styles.summaryLabel}>{item.label}</Text>
-          </View>
-        ))}
+        <Summary label="Menunggu" value={waiting} color="#64748b" />
+        <Summary label="Diproses" value={processing} color="#d97706" />
+        <Summary label="Selesai" value={completed} color="#15803d" />
       </View>
 
-      {/* REPORT TITLE */}
-      <Text style={styles.sectionTitle}>Laporan Terbaru</Text>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Daftar Laporan</Text>
+        <Text style={styles.count}>{reports.length} laporan</Text>
+      </View>
 
-      {/* LOOP */}
-      {/* Assessment: Loop menggunakan map() */}
-
-      <View>
-        {reports.map((report) => (
+      {reports.length === 0 ? (
+        <Text style={styles.empty}>Belum ada laporan fasilitas.</Text>
+      ) : (
+        reports.map((report) => (
           <Pressable
             key={report.id}
-            onPress={() => handleReportPress(report)}
             style={styles.reportCard}
+            onPress={() =>
+              router.push({
+                pathname: "/detail",
+                params: { id: String(report.id) },
+              })
+            }
           >
-            {/* ICON */}
             <View style={styles.reportIcon}>
-              <Ionicons name={report.icon} size={24} color="#2563eb" />
+              <Text style={styles.iconText}>!</Text>
             </View>
 
-            {/* CONTENT */}
-            <View style={styles.reportContent}>
-              {/* INLINE STYLE */}
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "bold",
-                  color: "#1e293b",
-                }}
-              >
-                {report.title}
-              </Text>
-
+            <View style={styles.reportInfo}>
+              <Text style={styles.reportTitle}>{report.title}</Text>
               <Text style={styles.location}>{report.location}</Text>
-
-              <View style={styles.statusRow}>
-                <Ionicons
-                  name={getStatusIcon(report.status)}
-                  size={16}
-                  color={getStatusColor(report.status)}
-                />
-
-                <Text
-                  style={[
-                    styles.statusText,
-                    {
-                      color: getStatusColor(report.status),
-                      marginLeft: 5,
-                    },
-                  ]}
-                >
-                  {report.status}
-                </Text>
-              </View>
+              <Text
+                style={[styles.status, { color: statusColor(report.status) }]}
+              >
+                {report.status}
+              </Text>
             </View>
 
-            {/* ARROW */}
-            <Ionicons name="chevron-forward" size={20} color="#415b5f" />
+            <Text style={styles.arrow}>›</Text>
           </Pressable>
-        ))}
-      </View>
+        ))
+      )}
 
-      {/* BUTTON */}
-
-      <Pressable style={styles.addButton} onPress={handleAddReport}>
-        <Ionicons name="add" size={22} color="white" />
-        <Text style={styles.addButtonText}>Buat Laporan</Text>
+      <Pressable
+        style={styles.primaryButton}
+        onPress={() => router.push("/create-report")}
+      >
+        <Text style={styles.primaryButtonText}>+ Buat Laporan Baru</Text>
       </Pressable>
+
+      <Pressable
+        style={styles.secondaryButton}
+        onPress={() => router.push("/explore")}
+      >
+        <Text style={styles.secondaryButtonText}>Informasi Aplikasi</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+function Summary({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: string;
+}) {
+  return (
+    <View style={styles.summaryCard}>
+      <Text style={[styles.summaryNumber, { color }]}>{value}</Text>
+      <Text style={styles.summaryLabel}>{label}</Text>
     </View>
   );
 }
 
-// ========================================
-// EXTERNAL STYLING
-// Assessment: Inline + External Style
-// ========================================
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    padding: 24,
-  },
-
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 28,
-  },
-
-  greeting: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#0f172a",
-  },
-
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#fedddb",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  titleSection: {
-    marginBottom: 24,
-  },
-
-  title: {
-    fontSize: 46,
-    textAlign: "center",
-    fontWeight: "bold",
+  screen: { flex: 1, backgroundColor: "#f1f5f9" },
+  content: { padding: 20, paddingBottom: 40 },
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1.1,
     color: "#2563eb",
   },
-
-  subtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    color: "#64748b",
-    marginTop: 4,
+  title: {
+    fontSize: 34,
+    fontWeight: "800",
+    color: "#0f172a",
+    marginTop: 8,
   },
-
-  statCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#eff6ff",
-    padding: 18,
-    borderRadius: 16,
+  subtitle: { fontSize: 14, color: "#64748b", marginTop: 5, marginBottom: 20 },
+  totalCard: {
+    backgroundColor: "#1d4ed8",
+    borderRadius: 18,
+    padding: 22,
     marginBottom: 24,
   },
-
-  statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#dbeafe",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
-
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1e3a8a",
-  },
-
-  statLabel: {
-    fontSize: 13,
-    color: "#64748b",
-  },
-
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 20,
-    gap: 10,
-  },
-
-  summaryItem: {
+  totalLabel: { color: "#dbeafe", fontSize: 14 },
+  totalNumber: { color: "#ffffff", fontSize: 42, fontWeight: "800" },
+  updated: { color: "#dbeafe", fontSize: 11, marginTop: 5 },
+  sectionTitle: { color: "#0f172a", fontSize: 18, fontWeight: "700" },
+  summaryRow: { flexDirection: "row", gap: 8, marginTop: 12, marginBottom: 24 },
+  summaryCard: {
     flex: 1,
     backgroundColor: "#ffffff",
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    elevation: 1,
-  },
-
-  summaryIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#0f172a",
-  },
-
-  summaryLabel: {
-    fontSize: 11,
-    color: "#64748b",
-    marginTop: 2,
-  },
-
-  modalOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(15, 23, 42, 0.38)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-    zIndex: 10,
-  },
-
-  modalCard: {
-    width: "100%",
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 20,
-    elevation: 6,
-  },
-
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#0f172a",
-  },
-
-  modalReportTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginBottom: 10,
-  },
-
-  modalText: {
-    fontSize: 14,
-    color: "#334155",
-    marginBottom: 8,
-  },
-
-  modalStatusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-    marginBottom: 12,
-  },
-
-  modalStatusLabel: {
-    fontSize: 14,
-    color: "#334155",
-    fontWeight: "600",
-  },
-
-  modalStatusValue: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
-  modalButton: {
-    backgroundColor: "#2563eb",
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: "center",
-    marginTop: 10,
   },
-
-  modalButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#0f172a",
+  summaryNumber: { fontSize: 24, fontWeight: "800" },
+  summaryLabel: { color: "#64748b", fontSize: 11, marginTop: 5 },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
-
+  count: { color: "#64748b", fontSize: 12 },
+  empty: {
+    color: "#64748b",
+    backgroundColor: "#ffffff",
+    padding: 20,
+    borderRadius: 12,
+  },
   reportCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-
-    // Shadow Android
-    elevation: 2,
-  },
-
-  reportIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: "#eff6ff",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
-
-  reportContent: {
-    flex: 1,
-  },
-
-  location: {
-    fontSize: 13,
-    color: "#64748b",
-    marginTop: 4,
-    marginBottom: 8,
-  },
-
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  addButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#2563eb",
-    padding: 15,
+    backgroundColor: "#ffffff",
+    padding: 14,
     borderRadius: 14,
-    marginTop: 8,
-    gap: 8,
+    marginBottom: 10,
   },
-
-  addButtonText: {
-    color: "white",
-    fontSize: 15,
-    fontWeight: "bold",
+  reportIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "#dbeafe",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
+  iconText: { color: "#1d4ed8", fontWeight: "800", fontSize: 22 },
+  reportInfo: { flex: 1 },
+  reportTitle: { color: "#0f172a", fontSize: 15, fontWeight: "700" },
+  location: { color: "#64748b", fontSize: 12, marginTop: 4 },
+  status: { fontSize: 12, fontWeight: "700", marginTop: 7 },
+  arrow: { color: "#64748b", fontSize: 28, paddingHorizontal: 5 },
+  primaryButton: {
+    backgroundColor: "#2563eb",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  primaryButtonText: { color: "#ffffff", fontSize: 15, fontWeight: "700" },
+  secondaryButton: {
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 12,
+    padding: 14,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  secondaryButtonText: { color: "#334155", fontWeight: "600" },
 });
